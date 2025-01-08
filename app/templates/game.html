@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>模拟手机界面</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <div class="phone">
+    <div class="status-bar">
+      <div class="status-item">
+        <span id="current-age">未出生</span>
+      </div>
+      <div class="status-item">
+        <span id="current-year">2025</span>
+      </div>
+    </div>
+    <div class="content">
+      <div class="tab-bar">
+        <button class="tab-button active" data-tab="events" onclick="showTab('events')">事件</button>
+        <button class="tab-button" data-tab="social" onclick="showTab('social')">微信</button>
+      </div>
+      <div id="events-view" class="view" style="display: flex;">
+        <div class="player-info">
+          <div class="info-column">
+            <div class="info-item">
+              <span class="info-icon">👤</span>
+              <span id="player-name" class="info-value"></span>
+            </div>
+            <div class="info-item">
+              <span class="info-icon">⚤</span>
+              <span id="player-gender" class="info-value"></span>
+            </div>
+          </div>
+          <div class="info-column">
+            <div class="info-item">
+              <span class="info-icon">🧠</span>
+              <div class="stat-info">
+                <span class="stat-label">智力</span>
+                <span id="intelligence" class="stat-value">0</span>
+              </div>
+            </div>
+            <div class="info-item">
+              <span class="info-icon">💪</span>
+              <div class="stat-info">
+                <span class="stat-label">体质</span>
+                <span id="physical" class="stat-value">0</span>
+              </div>
+            </div>
+          </div>
+          <div class="info-column">
+            <div class="info-item">
+              <span class="info-icon">✨</span>
+              <div class="stat-info">
+                <span class="stat-label">颜值</span>
+                <span id="appearance" class="stat-value">0</span>
+              </div>
+            </div>
+            <div class="info-item">
+              <span class="info-icon">💰</span>
+              <div class="stat-info">
+                <span class="stat-label">家境</span>
+                <span id="wealth" class="stat-value">0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div id="event-list" class="scrollable">
+        </div>
+        
+        <!-- 添加自定义滚动条 -->
+        <div class="scroll-track">
+          <div class="scroll-thumb"></div>
+        </div>
+        
+        <div class="buttons-container">
+          <button id="next-year-button" onclick="nextYear()">出生</button>
+        </div>
+      </div>
+      <div id="social-view" class="view" style="display: none;">
+        <div class="chat-list">
+          <!-- 聊天列表将由 JavaScript 动态生成 -->
+        </div>
+      </div>
+      <!-- 添加聊天窗口 -->
+      <div id="chat-window" class="chat-window" style="display: none;">
+        <div class="chat-header">
+          <button onclick="closeChat()" class="back-button">返回</button>
+          <span id="chat-contact-name"></span>
+        </div>
+        <div id="chat-messages" class="chat-messages">
+          <!-- 聊天消息将在这里动态生成 -->
+        </div>
+        <div class="chat-input-area">
+          <input type="text" id="chat-input" placeholder="输入消息...">
+          <button onclick="sendMessage()">发送</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+  <script>
+  let gameData = null;  // 声明全局变量
+  
+  // 在页面加载时初始化属性数据
+  document.addEventListener('DOMContentLoaded', function() {
+      gameData = JSON.parse(localStorage.getItem('gameData'));
+      if (gameData) {
+          // 更新基本信息
+          document.getElementById('player-name').textContent = gameData.name;
+          document.getElementById('player-gender').textContent = gameData.sex;
+          
+          // 更新属性值
+          document.getElementById('intelligence').textContent = String(gameData.attributes.智力 || 10);
+          document.getElementById('physical').textContent = String(gameData.attributes.体质 || 10);
+          document.getElementById('appearance').textContent = String(gameData.attributes.颜值 || 10);
+          document.getElementById('wealth').textContent = String(gameData.attributes.家境 || 10);
+          
+          // 可以添加其他初始化逻辑
+          console.log('玩家城市:', gameData.city);
+          console.log('玩家天赋:', gameData.talents);
+          
+          // 初始化状态栏
+          document.getElementById('current-year').textContent = currentYear;
+          document.getElementById('current-round').textContent = '1';
+      }
+  });
+
+  // 添加事件折叠/展开功能
+  function toggleEventDetail(header) {
+      const eventItem = header.parentElement;
+      eventItem.classList.toggle('expanded');
+  }
+
+  // 添加事件的函数
+  function addEvent(year, age, effect, detail) {
+      const eventList = document.getElementById('event-list');
+      const eventItem = document.createElement('div');
+      eventItem.className = 'event-item expanded';  // 添加 expanded 类使其默认展开
+      
+      eventItem.innerHTML = `
+        <div class="event-header" onclick="toggleEventDetail(this)">
+          <span class="event-year">${year}年</span>
+          <span class="event-age">${age}岁</span>
+          ${effect ? `<span class="event-effect">${effect}</span>` : ''}
+        </div>
+        <div class="event-detail">
+          ${detail}
+        </div>
+      `;
+      
+      eventList.appendChild(eventItem);
+      
+      // 自动滚动到新事件
+      eventItem.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }
+
+  let currentYear = 2025;
+  let currentAge = -1;  // -1 表示未出生
+  let isFirstClick = true;
+
+  // 处理新消息
+  function handleNewMessages(messages) {
+    if (!messages || !messages.length) return;
+    
+    messages.forEach(message => {
+      // 检查是否需要创建新角色
+      if (message.fromCharacter) {
+        // 找到或创建这个角色的聊天记录
+        let contact = contacts.find(c => c.name === message.fromCharacter);
+        if (!contact) {
+          contact = {
+            name: message.fromCharacter,
+            messages: [],
+            unread: 0
+          };
+          contacts.push(contact);
+        }
+        
+        // 添加消息
+        if (message.messageChain) {
+          message.messageChain.forEach(msg => {
+            contact.messages.push({
+              text: msg.text,
+              year: currentYear,
+              from: 'other',
+              effects: msg.effects,
+              hasEffect: msg.hasEffect
+            });
+          });
+          
+          // 更新未读消息数
+          contact.unread += message.messageChain.length;
+          
+          // 更新最新消息预览
+          const lastMessage = message.messageChain[message.messageChain.length - 1];
+          contact.message = lastMessage.text;
+          
+          // 如果有回复选项，保存到消息中
+          if (message.responses) {
+            contact.messages[contact.messages.length - 1].responses = message.responses;
+          }
+        }
+        
+        // 处理角色效果
+        if (message.characterEffect) {
+          contact.relationship = message.characterEffect.type;
+        }
+        
+        // 如果当前正在与这个联系人聊天，立即更新聊天窗口
+        const currentContactName = document.getElementById('chat-contact-name');
+        if (currentContactName && currentContactName.textContent === contact.name) {
+          showChatWindow(contact);
+        }
+      }
+    });
+    
+    // 刷新联系人列表
+    initChatList();
+    
+    // 如果当前在社交界面，显示新消息提醒
+    const socialView = document.getElementById('social-view');
+    if (socialView.style.display !== 'none') {
+      socialView.classList.add('new-message');
+      setTimeout(() => {
+        socialView.classList.remove('new-message');
+      }, 1000);
+    }
+  }
+
+  function showChatWindow(contact) {
+    const chatWindow = document.getElementById('chat-window');
+    const chatContactName = document.getElementById('chat-contact-name');
+    const chatMessages = document.getElementById('chat-messages');
+    
+    chatContactName.textContent = contact.name;
+    chatMessages.innerHTML = '';
+    
+    // 按年份对消息进行分组并显示
+    const messagesByYear = {};
+    contact.messages.forEach(msg => {
+      const year = msg.year || currentYear;  // 如果没有年份，使用当前年份
+      if (!messagesByYear[year]) {
+        messagesByYear[year] = [];
+      }
+      messagesByYear[year].push(msg);
+    });
+    
+    // 按年份显示消息
+    Object.keys(messagesByYear).sort().forEach(year => {
+      // 添加年份分隔线
+      const yearDivider = document.createElement('div');
+      yearDivider.className = 'year-divider';
+      yearDivider.innerHTML = `
+        <span class="year-text">${year}</span>
+        <div class="divider-line"></div>
+      `;
+      chatMessages.appendChild(yearDivider);
+      
+      // 显示该年份的消息
+      messagesByYear[year].forEach(msg => {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${msg.from === 'self' ? 'self' : 'other'}`;
+        messageDiv.innerHTML = `
+          <div class="message-content">
+            <p>${msg.text}</p>
+          </div>
+        `;
+        chatMessages.appendChild(messageDiv);
+      });
+    });
+    
+    // 清除未读消息计数
+    contact.unread = 0;
+    
+    // 显示聊天窗口
+    chatWindow.style.display = 'flex';
+    
+    // 自动滚动到底部
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  async function nextYear() {
+    try {
+      console.log('Current game data:', gameData);
+      // 检查是否达到游戏结束条件（例如80岁）
+      if (currentAge >= 80) {
+        alert('你已经度过了精彩的一生！游戏结束。');
+        document.getElementById('next-year-button').disabled = true;
+        return;
+      }
+
+      const button = document.getElementById('next-year-button');
+      button.disabled = true;
+      
+      // 处理第一次点击（出生）
+      if (isFirstClick) {
+        currentAge = 0;
+        document.getElementById('current-age').textContent = '0岁';
+        button.textContent = '下一年';
+        isFirstClick = false;
+      } else {
+        currentAge++;
+        currentYear++;
+        document.getElementById('current-age').textContent = `${currentAge}岁`;
+        document.getElementById('current-year').textContent = `${currentYear}年`;
+      }
+
+      // 准备发送给后端的数据
+      const context = {
+        name: document.getElementById('player-name').textContent,
+        sex: document.getElementById('player-gender').textContent,
+        age: currentAge.toString(),
+        appearance: String(parseInt(document.getElementById('appearance').textContent) || 10),
+        intelligence: String(parseInt(document.getElementById('intelligence').textContent) || 10),
+        physical: String(parseInt(document.getElementById('physical').textContent) || 10),
+        wealth: String(parseInt(document.getElementById('wealth').textContent) || 10),
+        city: (gameData && gameData.city) || '北京',
+        character: gameData.character || '',
+        characters: gameData.characters || '',
+        events: gameData.events || '',
+        messages: gameData.messages || '',
+        talents: gameData.talents || []  // 添加天赋列表
+      };
+
+      // 发送请求获取事件
+      const response = await fetch('/generate_event', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ context: context })
+      });
+
+      if (!response.ok) {
+        throw new Error('获取事件失败');
+      }
+
+      const eventData = await response.json();
+      if (!eventData || typeof eventData.content !== 'string') {
+        throw new Error('事件数据格式错误');
+      }
+
+      // 创建新的事件元素
+      const eventItem = document.createElement('div');
+      eventItem.className = 'event-item';
+      
+      // 应用事件效果
+      if (eventData.effects) {
+        Object.entries(eventData.effects).forEach(([attr, value]) => {
+          // 转换属性名称
+          const attrMap = {
+            'intelligence': 'intelligence',
+            'physical': 'physical',
+            'appearance': 'appearance',
+            'wealth': 'wealth'
+          };
+          const elementId = attrMap[attr.toLowerCase()];
+          const element = document.getElementById(elementId);
+          if (element) {
+            const currentValue = parseInt(element.textContent) || 0;
+            element.textContent = Math.max(0, Math.min(20, currentValue + value));
+          }
+        });
+      }
+
+      // 更新事件显示
+      eventItem.innerHTML = `
+        <div class="event-header" onclick="toggleEventDetail(this)">
+          <span class="event-year">${currentYear}年</span>
+          <span class="event-age">${currentAge}岁</span>
+          ${eventData.effects ? `<span class="event-effect">${formatEffects(eventData.effects)}</span>` : ''}
+        </div>
+        <div class="event-detail">
+          ${eventData.content}
+        </div>
+      `;
+
+      // 添加到事件列表
+      const eventList = document.getElementById('event-list');
+      eventList.appendChild(eventItem);
+
+      // 处理触发器（如微信消息等）
+      if (eventData.triggers && eventData.triggers.messages) {
+        handleNewMessages(eventData.triggers.messages);
+      }
+
+      // 自动滚动到新添加的事件
+      setTimeout(() => {
+        const eventList = document.getElementById('event-list');
+        eventList.scrollTo({
+          top: eventList.scrollHeight,
+          behavior: 'smooth'
+        });
+      }, 100);
+
+      button.disabled = false;
+    } catch (error) {
+      console.error('生成事件失败:', error);
+      console.error('错误详情:', { gameData, currentAge, currentYear });
+      alert('获取事件失败，请刷新页面重试');
+      button.disabled = false;
+    }
+  }
+
+  // 格式化效果显示
+  function formatEffects(effects) {
+    return Object.entries(effects)
+      .map(([attr, value]) => {
+        const attrNames = {
+          'intelligence': '智力',
+          'physical': '体质',
+          'appearance': '颜值',
+          'wealth': '家境'
+        };
+        const displayName = attrNames[attr.toLowerCase()] || attr;
+        return `${displayName}${value > 0 ? '+' : ''}${value}`;
+      })
+      .join(' ');
+  }
+
+  // 添加一些 CSS 样式
+  </script>
+
+  <style>
+  button:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+  }
+
+  button {
+      transition: opacity 0.3s ease;
+  }
+
+  .loading {
+      position: relative;
+  }
+
+  .loading:after {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      top: 50%;
+      left: 50%;
+      margin: -8px 0 0 -8px;
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid #3498db;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+  }
+
+  .player-info {
+    display: grid;
+    grid-template-columns: 0.8fr 1fr 1fr;
+    gap: 10px;
+    padding: 12px;
+    background: rgba(7, 193, 96, 0.05);
+    border-radius: 12px;
+    margin-bottom: 10px;
+    height: 80px;
+  }
+
+  .info-column {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 5px;
+    position: relative;
+  }
+
+  .info-column:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: -5px;
+    top: 10%;
+    height: 80%;
+    width: 1px;
+    background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.1), transparent);
+  }
+
+  .info-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px;
+  }
+
+  .info-icon {
+    font-size: 16px;
+    opacity: 0.7;
+    margin: 0;
+  }
+
+  .info-value {
+    font-size: 16px;
+    color: #2c3e50;
+    font-weight: 500;
+    max-width: 84px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .stat-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .stat-label {
+    color: #666;
+    margin: 0;
+    font-size: 12px;
+  }
+
+  .stat-value {
+    font-weight: bold;
+    color: #2c3e50;
+    margin: 0;
+    font-size: 16px;
+  }
+
+  /* 事件列表样式 */
+  .event-item {
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+  }
+
+  .event-header {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    background: rgba(7, 193, 96, 0.05);
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .event-header:hover {
+    background: rgba(7, 193, 96, 0.1);
+  }
+
+  .event-year {
+    font-weight: 500;
+    color: #2c3e50;
+    margin-right: 12px;
+    font-size: 17px;
+  }
+
+  .event-age {
+    color: #666;
+    margin-right: 12px;
+    font-size: 17px;
+  }
+
+  .event-effect {
+    color: #07c160;
+    font-weight: 500;
+    font-size: 17px;
+    margin-left: auto;
+  }
+
+  .event-detail {
+    padding: 16px 20px;
+    color: #2c3e50;
+    font-size: 16px;
+    line-height: 1.5;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    display: none;
+    background: #fafafa;
+  }
+
+  .event-item.expanded .event-detail {
+    display: block;
+  }
+
+  .event-item.expanded .event-header {
+    background: rgba(7, 193, 96, 0.1);
+  }
+
+  /* 事件列表容器样式 */
+  .scrollable {
+    padding: 15px;
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  /* 自定义滚动条 */
+  .scrollable::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .scrollable::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: 4px;
+  }
+
+  .scrollable::-webkit-scrollbar-thumb {
+    background: rgba(7, 193, 96, 0.2);
+    border-radius: 4px;
+  }
+
+  .scrollable::-webkit-scrollbar-thumb:hover {
+    background: rgba(7, 193, 96, 0.3);
+  }
+
+  /* 新消息提醒动画 */
+  @keyframes newMessage {
+    0% { background-color: rgba(7, 193, 96, 0.1); }
+    50% { background-color: rgba(7, 193, 96, 0.2); }
+    100% { background-color: rgba(7, 193, 96, 0.1); }
+  }
+
+  .new-message {
+    animation: newMessage 1s ease;
+  }
+  </style>
+
+  <script>
+  function showTab(tabName) {
+    // 隐藏所有视图
+    document.querySelectorAll('.view').forEach(view => {
+      view.style.display = 'none';
+      view.style.visibility = 'hidden';  // 添加可见性控制
+    });
+    
+    // 移除所有标签的激活状态
+    document.querySelectorAll('.tab-button').forEach(button => {
+      button.classList.remove('active');
+    });
+    
+    // 显示选中的视图
+    const selectedView = document.getElementById(tabName + '-view');
+    selectedView.style.display = 'flex';
+    selectedView.style.visibility = 'visible';  // 显示选中的视图
+    
+    // 激活对应的标签
+    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+  }
+  </script>
+
+  <script>
+  function sendMessage() {
+    const chatInput = document.getElementById('chat-input');
+    const message = chatInput.value.trim();
+    if (message) {
+      const chatMessages = document.getElementById('chat-messages');
+      const year = document.getElementById('current-year').textContent;
+      
+      // 获取当前聊天的联系人名称
+      const contactName = document.getElementById('chat-contact-name').textContent;
+      const currentContact = contacts.find(contact => contact.name === contactName);
+      
+      if (currentContact) {
+        currentContact.messages.push({
+          text: message,
+          year: currentYear,
+          from: 'self'
+        });
+        
+        // 创建新消息元素
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message self';
+        messageDiv.innerHTML = `
+          <div class="message-content">
+            <p>${message}</p>
+          </div>
+        `;
+        chatMessages.appendChild(messageDiv);
+        
+        // 清空输入框
+        chatInput.value = '';
+        
+        // 自动滚动到底部
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        // 获取 AI 回复
+        getAIResponse(currentContact, message).then(response => {
+          if (response && response.messages && response.messages.length > 0) {
+            handleNewMessages(response.messages);
+          }
+        });
+      }
+    }
+  }
+
+  // 获取 AI 回复
+  async function getAIResponse(contact, message) {
+    try {
+      // 获取当前游戏状态
+      const currentState = {
+        name: document.getElementById('player-name').textContent,
+        sex: document.getElementById('player-gender').textContent,
+        age: currentAge.toString(),
+        appearance: document.getElementById('appearance').textContent,
+        intelligence: document.getElementById('intelligence').textContent,
+        physical: document.getElementById('physical').textContent,
+        wealth: document.getElementById('wealth').textContent,
+        city: gameData.city,
+        character: contact.name,
+        characters: contact.name,
+        events: gameData.events || [],
+        messages: contact.messages.map(msg => {
+          const sender = msg.from === 'self' ? gameData.name : contact.name;
+          return `${currentAge}岁 ${sender}: [${msg.text}]`;
+        }).join('；')
+      };
+      
+      const response = await fetch('/get_messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          context: currentState
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('获取消息失败');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('获取 AI 回复失败:', error);
+      return null;
+    }
+  }
+  </script>
+</body>
+</html>

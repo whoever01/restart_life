@@ -1,0 +1,666 @@
+.phone {
+  width: 414px;
+  height: 896px;
+  border: 2px solid #ddd;
+  border-radius: 44px;
+  overflow: hidden;
+  background-color: #f7f7f7;
+  margin: 20px auto;
+  position: relative;
+  box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+}
+
+.status-bar {
+  background-color: #f7f7f7;
+  color: #333;
+  padding: 15px 20px;
+  font-size: 15px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  align-items: center;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  font-weight: 500;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  font-size: 18px;
+  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+#current-age, #current-year {
+  color: #07c160;
+  font-weight: 600;
+  font-size: 20px;
+}
+
+.status-item:first-child::after {
+  content: '·';
+  margin: 0 10px;
+  color: #999;
+  font-weight: normal;
+}
+
+.tab-bar {
+  display: flex;
+  background-color: #f7f7f7;
+  padding: 15px 20px;
+  gap: 20px;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  position: relative;
+  z-index: 1700;
+}
+
+.tab-button {
+  flex: 1;
+  padding: 10px 0;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  font-size: 16px;
+  color: #666;
+  transition: all 0.3s;
+  position: relative;
+}
+
+.tab-button.active {
+  color: #07c160;
+  font-weight: 600;
+}
+
+.tab-button.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40%;
+  height: 3px;
+  background-color: #07c160;
+  border-radius: 3px;
+}
+
+.view {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  background: white;
+}
+
+.event-card {
+  background-color: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.event-card.collapsed {
+  padding: 15px;
+  background-color: #fafafa;
+}
+
+.event-card.collapsed:hover {
+  background-color: white;
+}
+
+.event-card .event-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 10px 0;
+}
+
+.event-card .event-content {
+  font-size: 15px;
+  color: #666;
+  line-height: 1.6;
+  margin: 12px 0;
+  transition: all 0.3s;
+}
+
+.event-card.collapsed .event-content {
+  display: none;
+}
+
+#next-year-button {
+  width: 100%;
+  background-color: #07c160;
+  color: white;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+#next-year-button:active {
+  background-color: #06ae56;
+}
+
+.chat-list {
+  flex: 1;
+  overflow-y: auto;
+  background-color: white;
+  padding: 10px 0;
+}
+
+.chat-item {
+  display: flex;
+  padding: 12px 20px;
+  align-items: center;
+  gap: 15px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.chat-item:active {
+  background-color: #f5f5f5;
+}
+
+.avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 6px;
+  background-color: #07c160;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.chat-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.contact-name {
+  font-size: 17px;
+  color: #333;
+  margin: 0;
+  font-weight: 500;
+}
+
+.message-preview {
+  font-size: 14px;
+  color: #999;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.unread-badge {
+  background-color: #f43530;
+  color: white;
+  font-size: 12px;
+  padding: 0 6px;
+  border-radius: 12px;
+  margin-left: auto;
+  min-width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.new-message-badge {
+  width: 20px;
+  height: 20px;
+  background-color: red;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.8em;
+  margin-left: 10px;
+}
+
+.chat-window {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 100%;
+  background: white;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-window .chat-header {
+  background-color: #f7f7f7;
+  padding: 15px 20px;
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.close-button {
+  background-color: transparent;
+  border: none;
+  font-size: 1.5em;
+  cursor: pointer;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px;
+  background-color: #f7f7f7;
+  margin-bottom: 60px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,0,0,0.3) rgba(0,0,0,0.1);
+}
+
+.chat-input {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+}
+
+#chat-input {
+  background-color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 15px;
+  font-size: 15px;
+  margin-right: 10px;
+}
+
+.chat-list {
+  padding: 10px;
+}
+
+.chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.back-button {
+  color: #07c160;
+  font-size: 15px;
+  padding: 8px;
+  margin: -8px;
+  border-radius: 4px;
+}
+
+.back-button:active {
+  background-color: rgba(7,193,96,0.1);
+}
+
+#chat-contact-name {
+  font-size: 17px;
+  font-weight: 500;
+  color: #333;
+}
+
+.message {
+  margin: 10px 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.message.self {
+  align-items: flex-end;
+}
+
+.message.other {
+  align-items: flex-start;
+}
+
+.message-content {
+  max-width: 70%;
+  padding: 10px 15px;
+  border-radius: 15px;
+  position: relative;
+}
+
+.message.self .message-content {
+  background-color: #07c160;
+  color: white;
+  border-bottom-right-radius: 5px;
+}
+
+.message.other .message-content {
+  background-color: #f1f1f1;
+  color: #333;
+  border-bottom-left-radius: 5px;
+}
+
+.chat-input-area {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: #f7f7f7;
+  padding: 12px 15px;
+  border-top: 1px solid rgba(0,0,0,0.1);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+#chat-input {
+  flex: 1;
+  background-color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 12px 15px;
+  font-size: 15px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.chat-input-area button {
+  background-color: #07c160;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  font-size: 15px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.chat-input-area button:active {
+  background-color: #06ae56;
+}
+
+.chat-messages::-webkit-scrollbar,
+.chat-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb,
+.chat-list::-webkit-scrollbar-thumb {
+  background-color: rgba(0,0,0,0.1);
+  border-radius: 2px;
+}
+
+@media (max-width: 414px) {
+  .phone {
+    width: 100%;
+    height: 100vh;
+    border-radius: 0;
+    margin: 0;
+  }
+}
+
+/* 事件视图样式优化 */
+#events-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  position: relative;
+  z-index: 1;
+}
+
+/* 事件页面顶部信息 */
+.stats-container {
+  padding: 20px;
+  background-color: #f7f7f7;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  flex-shrink: 0;
+}
+
+#current-year {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 15px 0;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.stat-item {
+  background-color: white;
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.stat-label {
+  font-size: 14px;
+  color: #666;
+  margin: 0 0 5px 0;
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+/* 事件列表区域 */
+#event-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  padding-bottom: 90px;
+  padding-right: 24px;
+  background-color: #f7f7f7;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+#event-list::-webkit-scrollbar {
+  display: none;
+}
+
+.event-card {
+  background-color: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.event-card:last-child {
+  margin-bottom: 0;
+}
+
+.event-card:active {
+  transform: scale(0.98);
+}
+
+.event-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+  margin: 0 0 8px 0;
+}
+
+.event-date {
+  font-size: 13px;
+  color: #999;
+  margin: 0;
+}
+
+/* 底部按钮区域 */
+.buttons-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 15px;
+  background-color: white;
+  z-index: 1600;
+  border-top: 1px solid rgba(0,0,0,0.05);
+}
+
+#next-year-button {
+  width: 100%;
+  background-color: #07c160;
+  color: white;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+#next-year-button:active {
+  background-color: #06ae56;
+}
+
+/* 移除原来年份显示 */
+.stats-container h1 {
+  display: none;
+}
+
+@media (max-width: 414px) {
+  .buttons-container {
+    width: 100%;
+  }
+  
+  #event-list {
+    height: calc(100vh - 200px);
+  }
+}
+
+/* 添加滚动条样式 */
+#event-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+#event-list::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.1);
+  border-radius: 3px;
+}
+
+#event-list::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.3);
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+#event-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(0,0,0,0.4);
+}
+
+.chat-messages::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.1);
+  border-radius: 3px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.3);
+  border-radius: 3px;
+}
+
+/* 修改内容区域布局 */
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+/* 添加滚动条轨道 */
+.scroll-track {
+  position: absolute;
+  right: 4px;
+  top: 20px;
+  bottom: 80px;
+  width: 4px;
+  background-color: rgba(0,0,0,0.1);
+  border-radius: 2px;
+}
+
+/* 添加滚动条滑块 */
+.scroll-thumb {
+  position: absolute;
+  width: 100%;
+  background-color: rgba(0,0,0,0.3);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.scroll-thumb:hover {
+  background-color: rgba(0,0,0,0.4);
+}
+
+#social-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  z-index: 1500;
+}
+
+/* 添加消息预览行的容器 */
+.message-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 年份分隔线样式 */
+.year-divider {
+  display: flex;
+  align-items: center;
+  margin: 20px 0;
+  padding: 0 15px;
+}
+
+.year-text {
+  font-size: 14px;
+  color: #999;
+  background-color: #f7f7f7;
+  padding: 0 10px;
+  z-index: 1;
+}
+
+.divider-line {
+  flex: 1;
+  height: 1px;
+  background-color: #ddd;
+  margin: 0 10px;
+}

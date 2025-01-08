@@ -1,0 +1,21 @@
+# 游戏基础设置
+game:
+  initial_age: 14
+  initial_stats: 10
+  default_city: 北京
+  max_history: 30
+  max_stats: 20
+
+# 城市列表
+cities:
+  - 北京
+  - 上海
+  - 广州
+  - 深圳
+  - 西安
+
+# 属性范围
+stats:
+  min: 0
+  max: 20
+  initial: 10 
